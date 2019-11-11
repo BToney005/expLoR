@@ -18,4 +18,8 @@ $router->get('/', function () use ($router) {
 $router->group(['prefix' => 'api'], function () use ($router) {
    $router->post('register', 'AuthController@register');
    $router->post('login', 'AuthController@login');
+
+   $router->group(['prefix' => 'players'], function () use ($router) {
+       $router->post('record-match', 'PlayerController@recordMatch');
+   });
 });
