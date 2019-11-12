@@ -44,7 +44,7 @@ class PlayerController extends Controller
 
         if ($user) {
             $byDeck = $user->matches->groupBy('deck_code')
-                ->map(function ($match, $deck_code) {
+                ->map(function ($match, $deck_code) use (&$cards) {
                     $total = $match->where('deck_code', $deck_code)->count();
                     $wins = $match->where('deck_code', $deck_code)
                         ->where('result', true)
@@ -52,17 +52,34 @@ class PlayerController extends Controller
                     return [
                         'wins' => $wins,
                         'losses' => $total - $wins,
-                        'uses' => $total 
+                        'uses' => $total,
                     ];
                 });
+
+            $cards = [];
+            foreach ($byDeck as $deck_code => $deck) {
+                $ret = exec("cd ". base_path("scripts") ."; node runeterra.js {$deck_code} 2>&1", $out, $err);
+                $dcs = collect(json_decode($ret))->each(function ($card) use (&$cards, $deck) {
+                    if (!isset($cards[$card->code])) {
+                        $cards[$card->code] = [
+                            'wins' => 0,
+                            'losses' => 0
+                        ];
+                    }
+                    $cards[$card->code]['wins'] += $deck['wins'];
+                    $cards[$card->code]['losses'] += $deck['losses'];
+                });
+            }
 
             $stats['wins'] = $byDeck->sum('wins');
             $stats['losses'] = $byDeck->sum('losses');
             $stats['matches'] = $stats['wins'] + $stats['losses'];
             $stats['decks'] = $byDeck; 
+            $stats['cards'] = $cards;
 
             return response()->json(['stats' => $stats, 'message' => 'STATS FOUND'], 201);
         }
         return response()->json(['message' => 'Error retrieving stats.'], 409); 
     }
+
 }
