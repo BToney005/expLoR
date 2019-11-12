@@ -21,5 +21,6 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 
    $router->group(['prefix' => 'players'], function () use ($router) {
        $router->post('record-match', 'PlayerController@recordMatch');
+       $router->get('stats', 'PlayerController@stats');
    });
 });

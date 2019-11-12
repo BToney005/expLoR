@@ -27,4 +27,8 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     protected $hidden = [
         'password',
     ];
+
+    public function matches() {
+        return $this->hasMany(Match::class, 'player_uuid');
+    }
 }
