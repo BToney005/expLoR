@@ -15,20 +15,17 @@ class PlayerSeeder extends Seeder
     public function run()
     {
         $faker = Faker::create();
-        \DB::table('users')
+        \DB::table('players')
             ->insert([
                 'uuid' => Str::uuid()->toString(),
-                'username' => 'BToney005',
-                'email' => 'btoney434@gmail.com',
-                'password' => app('hash')->make('secret1234') 
+                'name' => 'BToney005',
             ]);
+
         foreach (range(1,20) as $i) {
-            \DB::table('users')
+            \DB::table('players')
                 ->insert([
                     'uuid' => Str::uuid()->toString(),
-                    'username' => $faker->username,
-                    'email' => $faker->email,
-                    'password' => app('hash')->make('secret1234') 
+                    'name' => $faker->username
                 ]);
         } 
     }

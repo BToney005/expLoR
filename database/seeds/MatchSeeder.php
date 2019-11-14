@@ -3,6 +3,7 @@
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Faker\Factory as Faker;
+use Carbon\Carbon;
 
 class MatchSeeder extends Seeder
 {
@@ -14,7 +15,7 @@ class MatchSeeder extends Seeder
     public function run()
     {
         
-        $users = \DB::table('users')->get()->pluck('uuid');
+        $players = \DB::table('players')->get()->pluck('uuid');
         $decks = [
             "CEBACAICHACACAIDCQTDIAQDAEBCSKZRBAAQCAISCMOR4KRQG4BACAIBE4BACAQBEE",
             "CEBAGAIDCYSC4BQBAIEAWDZEFM4AEAYBAIJBMMIDAEBQUMRWAEAQCAZR",
@@ -39,9 +40,9 @@ class MatchSeeder extends Seeder
             "CEBAIAIBBEGSGLQFAEBQKBQ6F4ZAEAIBAEWQGAIDCMQDIAQBAEARIBABAMLB2KZQ"
         ];
         foreach (range(1,200) as $i) {
-            $player1 = $users->random(1)[0];
+            $player1 = $players->random(1)[0];
             do {
-                $player2 = $users->random(1)[0];
+                $player2 = $players->random(1)[0];
             } while($player1 != $player2);
             
             $result = rand(0,1);
@@ -55,13 +56,15 @@ class MatchSeeder extends Seeder
                         'uuid' => Str::uuid()->toString(),
                         'player_uuid' => $player1,
                         'deck_code' => $decks[$player1_deck],
-                        'result' => $result
+                        'result' => $result,
+                        'completed_at' => Carbon::now()
                     ],
                     [
                         'uuid' => Str::uuid()->toString(),
                         'player_uuid' => $player2,
                         'deck_code' => $decks[$player2_deck],
-                        'result' => $result
+                        'result' => $result,
+                        'completed_at' => Carbon::now()
                     ]
             );
         }
