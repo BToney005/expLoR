@@ -6,13 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\UsesUuid;
 
-
-class Match extends Model 
+class Player extends Model 
 {
-    protected $table = 'player_matches';
 
     use UsesUuid, SoftDeletes;
 
     protected $guarded = [];
 
+    public function matches() {
+        return $this->hasMany(Match::class, 'player_uuid');
+    }
 }
+

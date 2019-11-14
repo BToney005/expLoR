@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class PlayerDecks extends Migration
+class CreatePlayersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,9 @@ class PlayerDecks extends Migration
      */
     public function up()
     {
-        Schema::create('player_matches', function (Blueprint $table) {
+        Schema::create('players', function (Blueprint $table) {
             $table->uuid('uuid')->primary();
-            $table->uuid('player_uuid');
-            $table->string('deck_code');
-            $table->string('result');
-            $table->datetime('completed_at');
+            $table->string('name')->unique();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -31,6 +28,6 @@ class PlayerDecks extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('player_matches');
+        Schema::dropIfExists('players');
     }
 }

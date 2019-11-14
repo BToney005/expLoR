@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Match;
-use App\Models\User;
-use Uuid;
+use App\Models\Player;
+use Carbon\Carbon;
 
 use \Firebase\JWT\JWT;
 
@@ -20,14 +20,16 @@ class PlayerController extends Controller
             'datetime' => 'required'
         ]);
 
-        $user = User::where('username',$request->player_name)
-            ->first();
+        $player = Player::firstOrCreate([
+            'name' => $request->player_name
+        ])->first();
 
-        if ($user) {
+        if ($player) {
             $match = Match::create([
-                'player_uuid' => $user->uuid, 
+                'player_uuid' => $player->uuid, 
                 'deck_code' => $request->deck_code,
-                'result' => (bool) $request->result
+                'result' => (bool) $request->result,
+                'completed_at' => Carbon::createFromTimeStamp($request->datetime)->toDateTimeString()
             ]);
             return response()->json(['match' => $match->uuid, 'message' => 'MATCH SAVED'], 201);
         }
@@ -39,11 +41,11 @@ class PlayerController extends Controller
             'player_name' => 'required'
         ]);
 
-        $user = User::where('username', $request->player_name)
+        $player = Player::where('name', $request->player_name)
             ->first();
 
-        if ($user) {
-            $byDeck = $user->matches->groupBy('deck_code')
+        if ($player) {
+            $byDeck = $player->matches->groupBy('deck_code')
                 ->map(function ($match, $deck_code) use (&$cards) {
                     $total = $match->where('deck_code', $deck_code)->count();
                     $wins = $match->where('deck_code', $deck_code)
