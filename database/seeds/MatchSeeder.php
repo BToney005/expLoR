@@ -56,15 +56,15 @@ class MatchSeeder extends Seeder
                         'uuid' => Str::uuid()->toString(),
                         'player_uuid' => $player1,
                         'deck_code' => $decks[$player1_deck],
-                        'result' => $result,
-                        'completed_at' => Carbon::now()
+                        'result' => $result
+                        //'completed_at' => Carbon::now()
                     ],
                     [
                         'uuid' => Str::uuid()->toString(),
                         'player_uuid' => $player2,
                         'deck_code' => $decks[$player2_deck],
-                        'result' => $result,
-                        'completed_at' => Carbon::now()
+                        'result' => $result
+                        //'completed_at' => Carbon::now()
                     ]
             );
         }

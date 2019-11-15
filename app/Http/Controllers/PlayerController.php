@@ -16,8 +16,8 @@ class PlayerController extends Controller
         $this->validate($request, [
             'player_name' => 'required',
             'deck_code' => 'required',
-            'result' => 'required|boolean',
-            'datetime' => 'required'
+            'result' => 'required|boolean'
+            //'datetime' => 'required'
         ]);
 
         $player = Player::firstOrCreate([
@@ -28,8 +28,8 @@ class PlayerController extends Controller
             $match = Match::create([
                 'player_uuid' => $player->uuid, 
                 'deck_code' => $request->deck_code,
-                'result' => (bool) $request->result,
-                'completed_at' => Carbon::createFromTimeStamp($request->datetime)->toDateTimeString()
+                'result' => (bool) $request->result
+                //'completed_at' => Carbon::createFromTimeStamp($request->datetime)->toDateTimeString()
             ]);
             return response()->json(['match' => $match->uuid, 'message' => 'MATCH SAVED'], 201);
         }

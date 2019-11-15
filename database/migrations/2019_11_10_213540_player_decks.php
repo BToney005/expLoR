@@ -18,7 +18,7 @@ class PlayerDecks extends Migration
             $table->uuid('player_uuid');
             $table->string('deck_code');
             $table->string('result');
-            $table->datetime('completed_at');
+            // $table->datetime('completed_at');
             $table->timestamps();
             $table->softDeletes();
         });
