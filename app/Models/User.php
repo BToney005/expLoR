@@ -25,6 +25,6 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     ];
 
     public function player() {
-        return $this->hasOne(Player::class, 'player_uuid');
+        return $this->belongsTo(Player::class, 'player_uuid');
     }
 }

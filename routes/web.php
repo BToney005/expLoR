@@ -16,11 +16,15 @@ $router->get('/', function () use ($router) {
 });
 
 $router->group(['prefix' => 'api'], function () use ($router) {
-   $router->post('register', 'AuthController@register');
-   $router->post('login', 'AuthController@login');
+    $router->post('register', 'AuthController@register');
+    $router->post('login', 'AuthController@login');
 
-   $router->group(['prefix' => 'players'], function () use ($router) {
-       $router->post('record-match', 'PlayerController@recordMatch');
-       $router->get('stats', 'PlayerController@stats');
-   });
+    $router->group(['prefix' => 'my'], function () use ($router) {
+        $router->get('cards', 'MyController@cards');
+    });
+
+    $router->group(['prefix' => 'players'], function () use ($router) {
+        $router->post('record-match', 'PlayerController@recordMatch');
+        $router->get('stats', 'PlayerController@stats');
+    });
 });

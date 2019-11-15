@@ -77,6 +77,7 @@ class AuthController extends Controller
                     $token = [
                         "iss" => env("APP_URL"),
                         "aud" => env("APP_URL"),
+                        "sub" => $user->uuid,
                         "iat" => time(),
                     ];
                     $jwt = JWT::encode($token, $key);

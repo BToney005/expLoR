@@ -16,5 +16,10 @@ class Player extends Model
     public function matches() {
         return $this->hasMany(Match::class, 'player_uuid');
     }
+
+    public function cards() {
+        return $this->hasMany(Card::class, 'player_uuid');
+    }
+
 }
 

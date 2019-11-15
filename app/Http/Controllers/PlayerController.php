@@ -22,7 +22,7 @@ class PlayerController extends Controller
 
         $player = Player::firstOrCreate([
             'name' => $request->player_name
-        ])->first();
+        ]);
 
         if ($player) {
             $match = Match::create([
@@ -31,6 +31,31 @@ class PlayerController extends Controller
                 'result' => (bool) $request->result
                 //'completed_at' => Carbon::createFromTimeStamp($request->datetime)->toDateTimeString()
             ]);
+            $cards = [];
+            $ret = exec("cd ". base_path("scripts") ."; node runeterra.js {$request->deck_code} 2>&1", $out, $err);
+            $dcs = collect(json_decode($ret))->each(function ($card) use (&$cards) {
+                if (!isset($cards[$card->code])) {
+                    $cards[$card->code] = 1;
+                } else {
+                    $cards[$card->code] += 1;
+                }
+            });
+
+            foreach ($cards as $code => $qty) {
+                $pCard = $player->cards()->where('card_code', $code)->first(); 
+                if ($pCard) {
+                    if ($qty > $pCard->quantity) {
+                        $pCard->quantity = $qty;
+                        $pCard->save();
+                    }
+                } else {
+                    $player->cards()->create([
+                        'player_uuid' => $player->uuid,
+                        'card_code' => $code,
+                        'quantity' => $qty
+                    ]); 
+                }
+            }
             return response()->json(['match' => $match->uuid, 'message' => 'MATCH SAVED'], 201);
         }
         return response()->json(['message' => 'Match Creation Failed!'], 409);
@@ -61,7 +86,7 @@ class PlayerController extends Controller
             $cards = [];
             foreach ($byDeck as $deck_code => $deck) {
                 $ret = exec("cd ". base_path("scripts") ."; node runeterra.js {$deck_code} 2>&1", $out, $err);
-                $dcs = collect(json_decode($ret))->each(function ($card) use (&$cards, $deck) {
+                $dcs = collect(json_decode($ret))->each(function ($card) use (&$cards, $deck, $player) {
                     if (!isset($cards[$card->code])) {
                         $cards[$card->code] = [
                             'wins' => 0,
