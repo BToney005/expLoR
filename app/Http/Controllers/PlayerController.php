@@ -20,9 +20,12 @@ class PlayerController extends Controller
             //'datetime' => 'required'
         ]);
 
+
+
         $player = Player::firstOrCreate([
             'name' => $request->player_name
         ]);
+
 
         if ($player) {
             $match = Match::create([
@@ -104,7 +107,7 @@ class PlayerController extends Controller
             $stats['decks'] = $byDeck; 
             $stats['cards'] = $cards;
 
-            return response()->json(['stats' => $stats, 'message' => 'STATS FOUND'], 201);
+            return response()->json(['stats' => $stats, 'message' => 'STATS FOUND'], 200);
         }
         return response()->json(['message' => 'Error retrieving stats.'], 409); 
     }

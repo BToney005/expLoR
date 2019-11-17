@@ -27,4 +27,8 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->post('record-match', 'PlayerController@recordMatch');
         $router->get('stats', 'PlayerController@stats');
     });
+
+    $router->group(['prefix' => 'decks'], function () use ($router) {
+        $router->get('top-decks', 'DeckController@topDecks');
+    });
 });
