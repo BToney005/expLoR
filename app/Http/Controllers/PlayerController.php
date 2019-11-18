@@ -73,6 +73,15 @@ class PlayerController extends Controller
             ->first();
 
         if ($player) {
+            $matchHistory = $player->matches
+                ->map(function($match) {
+                    return [
+                        'deck' => $match->deck_code,
+                        'result' => $match->result,
+                        'timestamp' => $match->created_at
+                    ];
+                });
+
             $byDeck = $player->matches->groupBy('deck_code')
                 ->map(function ($match, $deck_code) use (&$cards) {
                     $total = $match->where('deck_code', $deck_code)->count();
@@ -104,6 +113,7 @@ class PlayerController extends Controller
             $stats['wins'] = $byDeck->sum('wins');
             $stats['losses'] = $byDeck->sum('losses');
             $stats['matches'] = $stats['wins'] + $stats['losses'];
+            $stats['match_history'] = $matchHistory;
             $stats['decks'] = $byDeck; 
             $stats['cards'] = $cards;
 
