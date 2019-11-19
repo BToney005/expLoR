@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Lumen\Auth\Authorizable;
 use App\Traits\UsesUuid;
 
+use \Firebase\JWT\JWT;
+
 class User extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, Authorizable, UsesUuid, SoftDeletes;
@@ -24,7 +26,23 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         'password',
     ];
 
+    /**
+     * Relationships
+     */
+
     public function player() {
         return $this->belongsTo(Player::class, 'player_uuid');
+    }
+
+    /**
+     * Methods      
+     */
+
+    public static function getByToken($token) {
+        $jwt = explode(' ', $token)[1];
+        $key = env('JWT_SECRET');
+        $decoded = JWT::decode($jwt, $key, array('HS256'));
+
+        return User::find($decoded->sub);
     }
 }

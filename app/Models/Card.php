@@ -14,6 +14,10 @@ class Card extends Model
 
     protected $guarded = [];
 
+    public function decks() {
+        return $this->hasMany(Deck::class);
+    }
+
 }
 
 

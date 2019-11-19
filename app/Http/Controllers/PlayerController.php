@@ -20,12 +20,9 @@ class PlayerController extends Controller
             //'datetime' => 'required'
         ]);
 
-
-
         $player = Player::firstOrCreate([
             'name' => $request->player_name
         ]);
-
 
         if ($player) {
             $match = Match::create([
