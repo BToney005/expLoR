@@ -13,6 +13,13 @@ class Player extends Model
 
     protected $guarded = [];
 
+    /**
+     * Relationships
+     */
+    public function decks() {
+        return $this->hasMany(Deck::class);
+    }
+
     public function matches() {
         return $this->hasMany(Match::class, 'player_uuid');
     }
