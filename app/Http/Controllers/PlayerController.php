@@ -32,7 +32,7 @@ class PlayerController extends Controller
                 //'completed_at' => Carbon::createFromTimeStamp($request->datetime)->toDateTimeString()
             ]);
             $cards = [];
-            $ret = exec("cd ". base_path("scripts") ."; node runeterra.js {$request->deck_code} 2>&1", $out, $err);
+            $ret = exec("cd ". base_path("scripts") ."; node resources/assets/js/runeterra.js {$request->deck_code} 2>&1", $out, $err);
             $dcs = collect(json_decode($ret))->each(function ($card) use (&$cards) {
                 if (!isset($cards[$card->code])) {
                     $cards[$card->code] = 1;
@@ -85,7 +85,7 @@ class PlayerController extends Controller
 
             $cards = [];
             foreach ($byDeck as $deck_code => $deck) {
-                $ret = exec("cd ". base_path("scripts") ."; node runeterra.js {$deck_code} 2>&1", $out, $err);
+                $ret = exec("cd ". base_path("scripts") ."; node resources/assets/js/runeterra.js {$deck_code} 2>&1", $out, $err);
                 $dcs = collect(json_decode($ret))->each(function ($card) use (&$cards, $deck, $player) {
                     if (!isset($cards[$card->code])) {
                         $cards[$card->code] = [
