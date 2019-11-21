@@ -35,7 +35,6 @@ class UpdatePlayerCardsRenameFields extends Migration
             $table->dropForeign(['card_uuid']);
             $table->dropColumn('card_uuid');
             $table->string('card_code')->after('player_uuid');
-            $table->unique(['player_uuid', 'card_code']);
         });
     }
 }

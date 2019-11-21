@@ -20,7 +20,7 @@ class CreatePlayerDecksTable extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique(['player_uuid','deck_code']);
+            //$table->unique(['player_uuid','deck_code']);
         });
     }
 

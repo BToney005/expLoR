@@ -14,7 +14,7 @@ class UpdatePlayerDecksUseDeckUuid extends Migration
     public function up()
     {
         Schema::table('player_decks', function (Blueprint $table) {
-            $table->dropUnique(['player_uuid','deck_code']);
+            //$table->dropUnique(['player_uuid','deck_code']);
             $table->dropColumn('deck_code');
             $table->uuid('deck_uuid')->after('player_uuid');
             $table->foreign('deck_uuid')
@@ -34,7 +34,7 @@ class UpdatePlayerDecksUseDeckUuid extends Migration
             $table->dropForeign(['deck_uuid']);
             $table->dropColumn('deck_uuid');
             $table->string('deck_code')->after('player_uuid');
-            $table->unique(['player_uuid','deck_code']);
+            //$table->unique(['player_uuid','deck_code']);
         });
     }
 }

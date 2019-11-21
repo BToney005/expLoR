@@ -18,7 +18,7 @@ class CreateDeckKeywordsTable extends Migration
             $table->uuid('deck_uuid');
             $table->string('keyword');
 
-            $table->unique(['deck_uuid', 'keyword']);
+            //$table->unique(['deck_uuid', 'keyword']);
 
             $table->foreign('deck_uuid')
                 ->references('uuid')
