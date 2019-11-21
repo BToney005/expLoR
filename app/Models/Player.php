@@ -16,8 +16,9 @@ class Player extends Model
     /**
      * Relationships
      */
+
     public function decks() {
-        return $this->hasMany(Deck::class);
+        return $this->belongsToMany(Deck::class, 'player_decks');
     }
 
     public function matches() {
@@ -25,7 +26,7 @@ class Player extends Model
     }
 
     public function cards() {
-        return $this->hasMany(Card::class, 'player_uuid');
+        return $this->belongsToMany(Card::class, 'player_cards'); 
     }
 
 }

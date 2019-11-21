@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Deck;
 use App\Models\Match;
 use App\Models\Player;
 use Carbon\Carbon;
@@ -25,12 +26,17 @@ class PlayerController extends Controller
         ]);
 
         if ($player) {
+            $deck = Deck::firstOrCreate([
+                'code' => $request->deck_code
+            ]);
             $match = Match::create([
                 'player_uuid' => $player->uuid, 
                 'deck_code' => $request->deck_code,
                 'result' => (bool) $request->result
                 //'completed_at' => Carbon::createFromTimeStamp($request->datetime)->toDateTimeString()
             ]);
+
+            /*
             $cards = [];
             $ret = exec("cd ". base_path("resources/assets/js") ."; node runeterra.js {$request->deck_code} 2>&1", $out, $err);
             $dcs = collect(json_decode($ret))->each(function ($card) use (&$cards) {
@@ -40,20 +46,28 @@ class PlayerController extends Controller
                     $cards[$card->code] += 1;
                 }
             });
+            */
 
-            foreach ($cards as $code => $qty) {
-                $pCard = $player->cards()->where('card_code', $code)->first(); 
+            foreach ($deck->cards as $card) {
+                $pCard = \DB::table('player_cards')
+                    ->where('card_code', $card->code)
+                    ->where('player_uuid', $player->uuid)
+                    ->first();
                 if ($pCard) {
+                    /*
                     if ($qty > $pCard->quantity) {
                         $pCard->quantity = $qty;
                         $pCard->save();
                     }
+                    */
                 } else {
-                    $player->cards()->create([
-                        'player_uuid' => $player->uuid,
-                        'card_code' => $code,
-                        'quantity' => $qty
-                    ]); 
+                    \DB::table('player_cards')
+                        ->insert([
+                            'uuid' => Str::uuid()->toString(),
+                            'player_uuid' => $player->uuid,
+                            'card_code' => $card->code,
+                            'quantity' => 1
+                        ]);
                 }
             }
             return response()->json(['match' => $match->uuid, 'message' => 'MATCH SAVED'], 201);

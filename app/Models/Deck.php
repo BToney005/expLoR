@@ -8,11 +8,27 @@ class Deck extends Model
 {
     use UsesUuid;
 
-    protected $table = 'player_decks';
-
     protected $guarded = [];
 
-    public function player() {
-        return $this->belongsTo(Player::class);
+    /**
+     * Relationships
+     */
+
+    public function cards() {
+        return $this->belongsToMany(Card::class, 'deck_cards', 'card_uuid', 'deck_uuid');
+    }
+
+    /**
+     * Methods 
+     */
+
+    public function getRegionsAttribute() {
+        if ($this->region2) {
+            return [
+                $this->region1,
+                $this->region2
+            ];
+        }
+        return [$this->region1];
     }
 }

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Card;
 use App\Models\Deck;
+use App\Models\Player\Deck as PlayerDeck;
 use App\Models\Match;
 use App\Models\Player;
+use App\Models\Player\Card as PlayerCard;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -19,11 +22,42 @@ class MyController extends Controller
         $token = $request->header('authorization');
         if ($token) {
             $user = User::getByToken($token);
-
             if ($user && $user->player) {
-                return response()->json(['cards' => $user->player->cards()->get(['card_code', 'quantity']), 'message' => 'CARDS FOUND'], 201);
+                $cards = $user->player->cards()
+                    ->get(['code','quantity'])
+                    ->map(function($card) {
+                        return [
+                            'card_code' => $card->code,
+                            'quantity' => $card->quantity
+                        ];
+                    });
+                return response()->json(['cards' => $cards, 'message' => 'CARDS FOUND'], 201);
             }
             return response()->json(['message' => 'Error retrieving cards.'], 409); 
+        }
+        return response()->json(['message' => 'Authorization error.'], 410);
+    }
+
+    public function addCard(Request $request) {
+
+        $this->validate($request, [
+            'card_code' => 'required'
+        ]);
+
+        $token = $request->header('authorization');
+        if ($token) {
+            $user = User::getByToken($token);
+
+            if ($user && $user->player) {
+                $card = Card::firstOrCreate([
+                    'code' => $request->card_code
+                ]);
+                $playerCard = PlayerCard::firstOrCreate([
+                    'card_uuid' => $card->uuid,
+                    'player_uuid' => $user->player->uuid 
+                ]);
+                return response()->json(['message' => 'card added successfully.'], 201);
+            }
         }
         return response()->json(['message' => 'Authorization error.'], 410);
     }
@@ -33,7 +67,10 @@ class MyController extends Controller
         if ($token) {
             $user = User::getByToken($token);
             if ($user && $user->player) {
-                return response()->json(['decks' => $user->player->decks->pluck('deck_code'), 'message' => 'DECKS FOUND'], 201);
+                $decks = $user->player->decks()
+                    ->whereNull('deleted_at')
+                    ->get(['code','region1','region2']);
+                return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
             }
         }
         return response()->json(['message' => 'Authorization error.'], 410);
@@ -50,20 +87,24 @@ class MyController extends Controller
             $user = User::getByToken($token);
 
             if ($user && $user->player) {
-
-                $deck = \DB::table('player_decks')
+                $deck = Deck::firstOrCreate([
+                    'code' => $request->deck_code
+                ]);
+                $playerDeck = \DB::table('player_decks')
                     ->where('player_uuid', $user->player->uuid)
-                    ->where('deck_code', $request->deck_code)
+                    ->where('deck_uuid', $deck->uuid)
                     ->first();
-                if (!$deck) {
-                    $deck = Deck::create([
+                if (!$playerDeck) {
+                    $playerDeck = PlayerDeck::create([
                         'player_uuid' => $user->player->uuid,
-                        'deck_code' => $request->deck_code
+                        'deck_uuid' => $deck->uuid
                     ]);
-                } else if ($deck->deleted_at) {
-                    $deck = Deck::find($deck->uuid);
-                    $deck->update(['deleted_at' => null]);
-                    $deck->refresh();
+                } else if ($playerDeck->deleted_at) {
+                    \DB::table('player_decks')
+                        ->where('uuid', $playerDeck->uuid)
+                        ->update([
+                            'deleted_at' => null
+                        ]);
                 }
                 return response()->json(['deck' => $deck, 'message' => 'DECK FAVORITED'], 201);
             }
@@ -84,17 +125,17 @@ class MyController extends Controller
             $user = User::getByToken($token);
 
             if ($user && $user->player) {
-
-                $deck = \DB::table('player_decks')
-                    ->where('player_uuid', $user->player->uuid)
-                    ->where('deck_code', $request->deck_code)
-                    ->first();
+                $deck = Deck::where('code', $request->deck_code)->first();
                 if (!$deck) {
                     return response()->json(['message' => 'Deck not found.'], 204);
+                }
+                $playerDeck = PlayerDeck::where('player_uuid', $user->player->uuid)
+                    ->where('deck_uuid', $deck->uuid)
+                    ->first();
+                if (!$playerDeck) {
+                    return response()->json(['message' => 'Deck not found.'], 204);
                 } else if (!$deck->deleted_at) {
-                    $deck = Deck::find($deck->uuid);
-                    $deck->update(['deleted_at' => Carbon::now()]);
-                    $deck->refresh();
+                    $playerDeck->delete();
                 }
                 return response()->json(['message' => 'DECK UNFAVORITED'], 201);
             }
