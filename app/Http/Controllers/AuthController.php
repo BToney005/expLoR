@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Player;
 use App\Models\User;
-use Uuid;
 
 use \Firebase\JWT\JWT;
 

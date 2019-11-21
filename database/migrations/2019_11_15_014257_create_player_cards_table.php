@@ -19,7 +19,7 @@ class CreatePlayerCardsTable extends Migration
             $table->string('card_code');
             $table->unsignedInteger('quantity')->default(1);
 
-            $table->unique(['player_uuid', 'card_code']);
+            // $table->unique(['player_uuid', 'card_code']);
             $table->foreign('player_uuid')
                 ->references('uuid')
                 ->on('players');

@@ -18,6 +18,10 @@ class Deck extends Model
         return $this->belongsToMany(Card::class, 'deck_cards', 'card_uuid', 'deck_uuid');
     }
 
+    public function keywords() {
+        return $this->hasMany(DeckKeyword::class);
+    }
+
     /**
      * Methods 
      */
