@@ -17,7 +17,6 @@ class PlayerController extends Controller
 {
     public function recordMatch(Request $request) {
 
-        \Log::debug(json_encode($request->input()));
         $this->validate($request, [
             'player_id' => 'required',
             'opponent' => 'required',
