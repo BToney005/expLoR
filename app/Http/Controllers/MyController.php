@@ -210,7 +210,7 @@ class MyController extends Controller
                     ->score;
             })
             ->take(20)
-            ->toArray();
+            ->all();
 
         return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
     }
