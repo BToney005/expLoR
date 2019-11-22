@@ -25,6 +25,7 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->get('decks', 'MyController@getFavoriteDecks');
         $router->post('decks/favorite', 'MyController@addDeckToFavorites');
         $router->post('decks/unfavorite', 'MyController@removeDeckFromFavorites');
+        $router->post('decks/filter', 'MyController@filterDecks');
     });
 
     $router->group(['prefix' => 'players'], function () use ($router) {
