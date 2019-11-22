@@ -76,40 +76,43 @@ class MyController extends Controller
     }
 
     public function getFavoriteDecks(Request $request) {
-        $token = $request->header('authorization');
-        if ($token) {
-            $user = User::getByToken($token);
-            if ($user && $user->player) {
-                $decks = $user->player->decks()
-                    ->whereNull('deleted_at')
-                    ->get(['code','region1','region2']);
-                return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
-            }
+        $this->validate($request, [
+            'player_name' => 'required'
+        ]);
+
+        $player = Player::where('name', $request->player_name)
+            ->first();
+
+        if ($player) {
+            $decks = $player->decks()
+                ->whereNull('deleted_at')
+                ->get(['code','region1','region2', 'created_at']);
+            return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
         }
-        return response()->json(['message' => 'Authorization error.'], 410);
+        return response()->json(['message' => 'Player not found.'], 410);
     }
 
     public function addDeckToFavorites(Request $request) {
 
         $this->validate($request, [
-            'deck_code' => 'required'
+            'deck_code' => 'required',
+            'player_name' => 'required'
         ]);
 
-        $token = $request->header('authorization');
-        if ($token) {
-            $user = User::getByToken($token);
+        $player = Player::where('name', $request->player_name)
+            ->first();
 
-            if ($user && $user->player) {
+        if ($player) {
                 $deck = Deck::firstOrCreate([
                     'code' => $request->deck_code
                 ]);
                 $playerDeck = \DB::table('player_decks')
-                    ->where('player_uuid', $user->player->uuid)
+                    ->where('player_uuid', $player->uuid)
                     ->where('deck_uuid', $deck->uuid)
                     ->first();
                 if (!$playerDeck) {
                     $playerDeck = PlayerDeck::create([
-                        'player_uuid' => $user->player->uuid,
+                        'player_uuid' => $player->uuid,
                         'deck_uuid' => $deck->uuid
                     ]);
                 } else if ($playerDeck->deleted_at) {
@@ -120,41 +123,37 @@ class MyController extends Controller
                         ]);
                 }
                 return response()->json(['deck' => $deck, 'message' => 'DECK FAVORITED'], 201);
-            }
-            return response()->json(['message' => 'Error retrieving cards.'], 409); 
         }
-        return response()->json(['message' => 'Authorization error.'], 410);
 
+        return response()->json(['message' => 'Error retrieving cards.'], 409);
     }
 
     public function removeDeckFromFavorites(Request $request) {
 
         $this->validate($request, [
-            'deck_code' => 'required'
+            'deck_code' => 'required',
+            'player_name' => 'required'
         ]);
 
-        $token = $request->header('authorization');
-        if ($token) {
-            $user = User::getByToken($token);
+        $player = Player::where('name', $request->player_name)
+            ->first();
 
-            if ($user && $user->player) {
-                $deck = Deck::where('code', $request->deck_code)->first();
-                if (!$deck) {
-                    return response()->json(['message' => 'Deck not found.'], 204);
-                }
-                $playerDeck = PlayerDeck::where('player_uuid', $user->player->uuid)
-                    ->where('deck_uuid', $deck->uuid)
-                    ->first();
-                if (!$playerDeck) {
-                    return response()->json(['message' => 'Deck not found.'], 204);
-                } else if (!$deck->deleted_at) {
-                    $playerDeck->delete();
-                }
-                return response()->json(['message' => 'DECK UNFAVORITED'], 201);
+        if ($player) {
+            $deck = Deck::where('code', $request->deck_code)->first();
+            if (!$deck) {
+                return response()->json(['message' => 'Deck not found.'], 204);
             }
-            return response()->json(['message' => 'Error retrieving cards.'], 409); 
+            $playerDeck = PlayerDeck::where('player_uuid', $player->uuid)
+                ->where('deck_uuid', $deck->uuid)
+                ->first();
+            if (!$playerDeck) {
+                return response()->json(['message' => 'Deck not found.'], 204);
+            } else if (!$deck->deleted_at) {
+                $playerDeck->delete();
+            }
+            return response()->json(['message' => 'DECK UNFAVORITED'], 201);
         }
-        return response()->json(['message' => 'Authorization error.'], 410);
+        return response()->json(['message' => 'Error retrieving cards.'], 409);
 
     }
 
