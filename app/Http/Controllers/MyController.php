@@ -249,25 +249,42 @@ class MyController extends Controller
                     } else {
                         $q->whereRaw('1=0');
                     }
-                })->when(count($keywordParams), function ($q) use ($keywordParams) {
+                });
+                /*
+                ->when(count($keywordParams), function ($q) use ($keywordParams) {
                     $q->whereIn('deck_keywords.keyword', $keywordParams);
                 });
+                */
             })
             ->groupBy('decks.uuid')
             ->get()
-            ->filter(function ($deck) use ($cardUuids, $request) {
+            ->filter(function ($deck) use ($cardUuids, $keywordParams, $request) {
                 $deckCards = \DB::table('deck_cards')
                     ->where('deck_uuid', $deck->uuid)
                     ->pluck('card_uuid')
                     ->toArray();
+                
                 if ($request->player_cards && !count($cardUuids)) {
                     return false;
                 }
+
                 foreach ($cardUuids as $cardUuid) {
                     if (!in_array($cardUuid, $deckCards)) {
                         return false;
                     } 
                 }
+
+                $deckKeywords = \DB::table('deck_keywords')
+                    ->where('deck_uuid', $deck->uuid)
+                    ->pluck('keyword')
+                    ->toArray();
+
+                foreach ($keywordParams as $param) {
+                    if (!in_array($param,$deckKeywords)) {
+                        return false;
+                    }
+                }
+
                 return true;
             })
             ->map(function ($deck) use ($player) {
