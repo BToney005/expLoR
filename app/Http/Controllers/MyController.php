@@ -18,24 +18,25 @@ class MyController extends Controller
 {
 
     public function cards(Request $request) {
+        $this->validate($request, [
+            'player_name' => 'required'
+        ]);
 
-        $token = $request->header('authorization');
-        if ($token) {
-            $user = User::getByToken($token);
-            if ($user && $user->player) {
-                $cards = $user->player->cards()
-                    ->get(['code','quantity'])
-                    ->map(function($card) {
-                        return [
-                            'card_code' => $card->code,
-                            'quantity' => $card->quantity
-                        ];
-                    });
-                return response()->json(['cards' => $cards, 'message' => 'CARDS FOUND'], 201);
-            }
-            return response()->json(['message' => 'Error retrieving cards.'], 409); 
+        $player = Player::where('name', $request->player_name)
+            ->first();
+
+        if ($player) {
+            $cards = $player->cards()
+                ->get(['code','quantity'])
+                ->map(function($card) {
+                    return [
+                        'card_code' => $card->code,
+                        'quantity' => $card->quantity
+                    ];
+                });
+            return response()->json(['cards' => $cards, 'message' => 'CARDS FOUND'], 201);
         }
-        return response()->json(['message' => 'Authorization error.'], 410);
+        return response()->json(['message' => 'Error retrieving cards.'], 409);
     }
 
     public function addCard(Request $request) {
