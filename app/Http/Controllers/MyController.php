@@ -209,7 +209,8 @@ class MyController extends Controller
                 return Deck::find($deck->uuid)
                     ->score;
             })
-            ->take(20);
+            ->take(20)
+            ->toArray();
 
         return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
     }
