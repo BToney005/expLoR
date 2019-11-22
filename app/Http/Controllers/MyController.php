@@ -50,14 +50,29 @@ class MyController extends Controller
         $player = Player::where('name', $request->player_name)
             ->first();
 
-            $card = Card::firstOrCreate([
-                'code' => $request->card_code
-            ]);
-            $playerCard = PlayerCard::firstOrCreate([
+        $card = Card::firstOrCreate([
+            'code' => $request->card_code
+        ]);
+
+        $existingCard = \DB::table('player_cards')
+            ->where('player_uuid', $player->uuid)
+            ->where('card_uuid', $card->uuid)
+            ->first();
+        if ($existingCard) {
+            \DB::table('player_decks')
+                ->where('uuid', $existingCard->uuid)
+                ->update([
+                    'quantity' => $request->count
+                ]);
+        } else {
+            PlayerCard::create([
                 'card_uuid' => $card->uuid,
-                'player_uuid' => $player->uuid
+                'player_uuid' => $player->uuid,
+                'quantity' => $request->count
             ]);
-            return response()->json(['message' => 'card added successfully.'], 201);
+        }
+
+        return response()->json(['message' => 'card added successfully.'], 201);
     }
 
     public function getFavoriteDecks(Request $request) {
