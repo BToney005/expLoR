@@ -205,6 +205,10 @@ class MyController extends Controller
             })
             ->groupBy('decks.uuid')
             ->get()
+            ->map(function ($deck) use ($player) {
+                $deck->bookmarked = $player->decks()->where('deck_uuid', $deck->uuid)->count();
+                return $deck;
+            })
             ->sortByDesc(function ($deck, $key) {
                 return Deck::find($deck->uuid)
                     ->score;
