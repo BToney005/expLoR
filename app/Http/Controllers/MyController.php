@@ -59,7 +59,7 @@ class MyController extends Controller
             ->where('card_uuid', $card->uuid)
             ->first();
         if ($existingCard) {
-            \DB::table('player_decks')
+            \DB::table('player_cards')
                 ->where('uuid', $existingCard->uuid)
                 ->update([
                     'quantity' => $request->count
