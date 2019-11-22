@@ -50,7 +50,8 @@ class PlayerController extends Controller
             $match = Match::create([
                 'player_uuid' => $player->uuid, 
                 'deck_code' => $request->deck_code,
-                'result' => (bool) $request->result
+                'result' => (bool) $request->result,
+                'created_at' => date("Y-m-d H:i:s")
             ]);
 
             foreach ($request->cards as $card_code) {
