@@ -95,16 +95,16 @@ class PlayerController extends Controller
             ->first();
 
         if ($player) {
-            $matchHistory = $player->matches
+            $matchHistory = $player->matches()
+                ->orderBy('created_at', 'desc')
+                ->get()
                 ->map(function($match) {
                     return [
                         'deck' => $match->deck_code,
                         'result' => $match->result,
                         'timestamp' => $match->created_at
                     ];
-                })
-                ->sortByDesc('timestamp')
-                ->toArray();
+                });
 
             $byDeck = $player->matches->groupBy('deck_code')
                 ->map(function ($match, $deck_code) use (&$cards) {
