@@ -35,6 +35,7 @@ class PlayerController extends Controller
             $deck = Deck::firstOrCreate([
                 'code' => $request->deck_code
             ]);
+
             foreach ($request->regions as $index => $region) {
                 $i = $index + 1;
                 if (!$deck->{"region{$i}"}) {
@@ -57,32 +58,47 @@ class PlayerController extends Controller
                 'created_at' => date("Y-m-d H:i:s")
             ]);
 
-            foreach ($request->cards as $card_code) {
-                $card = Card::firstOrCreate(['code' => $card_code]);
+
+            $deckCards = \DB::table('deck_cards')
+                ->where('deck_uuid', $deck->uuid)
+                ->get();
+
+            foreach ($deckCards as $deckCard) {
+                // $card = Card::firstOrCreate(['code' => $card_code]);
                 $pc = \DB::table('player_cards')
                     ->where([
                         'player_uuid' => $player->uuid,
-                        'card_uuid' => $card->uuid,
+                        'card_uuid' => $deckCard->card_uuid,
                     ])->first();
-                if (!$pc) {
+                if ($pc) {
+                    if ($pc->quantity < $deckCard->count) {
+                        \DB::table('player_cards')
+                            ->where('uuid', $pc->uuid)
+                            ->update(['quantity' => $deckCard->count]);
+                    }
+                }
+                else {
                     \DB::table('player_cards')->insert([
                         'uuid' => Str::uuid()->toString(),
                         'player_uuid' => $player->uuid,
-                        'card_uuid' => $card->uuid
+                        'card_uuid' => $deckCard->card_uuid,
+                        'quantity' => $deckCard->count
                     ]);
                 }
+                /*
                 $dc = \DB::table('deck_cards')
                     ->where([
                         'deck_uuid' => $deck->uuid,
-                        'card_uuid' => $card->uuid
+                        'card_uuid' => $deckCard->card_uuid
                     ])->first();
                 if (!$dc) {
                     \DB::table('deck_cards')->insert([
                         'uuid' => Str::uuid()->toString(),
                         'deck_uuid' => $deck->uuid,
-                        'card_uuid' => $card->uuid
+                        'card_uuid' => $deckCard->card_uuid
                     ]);
                 }
+                */
             }
 
             return response()->json(['match' => $match->uuid, 'message' => 'MATCH SAVED'], 201);
