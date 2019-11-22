@@ -106,7 +106,8 @@ class PlayerController extends Controller
                     return [
                         'deck' => $match->deck_code,
                         'result' => $match->result,
-                        'timestamp' => $match->created_at
+                        'timestamp' => $match->created_at,
+                        'opponent' => $match->opponent
                     ];
                 });
 
