@@ -86,7 +86,7 @@ class MyController extends Controller
         if ($player) {
             $decks = $player->decks()
                 ->whereNull('deleted_at')
-                ->get(['code','region1','region2']);
+                ->get(['code','region1','region2', 'created_at']);
             return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
         }
         return response()->json(['message' => 'Player not found.'], 410);
