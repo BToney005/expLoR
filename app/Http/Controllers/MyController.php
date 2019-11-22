@@ -201,8 +201,11 @@ class MyController extends Controller
                 $query->whereIn('code', $request->required_cards);
             })
             ->when($request->player_cards, function ($query) use ($request,$player) {
-                $query->whereIn('code', $request->required_cards)
-                    ->whereIn('code', $player->cards->pluck('code')->toArray());
+                if (count($request->required_cards)) {
+                    $query->whereIn('code', $request->required_cards)
+                        ->whereIn('code', $player->cards->pluck('code')->toArray());
+                }
+                $query->whereIn('code', $player->cards->pluck('code')->toArray());
             })
             ->pluck('uuid')
             ->toArray();
@@ -252,11 +255,14 @@ class MyController extends Controller
             })
             ->groupBy('decks.uuid')
             ->get()
-            ->filter(function ($deck) use ($cardUuids) {
+            ->filter(function ($deck) use ($cardUuids, $request) {
                 $deckCards = \DB::table('deck_cards')
                     ->where('deck_uuid', $deck->uuid)
                     ->pluck('card_uuid')
                     ->toArray();
+                if ($request->player_cards && !count($cardUuids)) {
+                    return false;
+                }
                 foreach ($cardUuids as $cardUuid) {
                     if (!in_array($cardUuid, $deckCards)) {
                         return false;
