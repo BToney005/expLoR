@@ -197,18 +197,33 @@ class MyController extends Controller
             return response()->json(['message' => 'Player not found'], 500);
         }
 
-        $cardUuids = Card::when(!$request->player_cards, function ($query) use ($request) {
+        $playerCards = $request->player_cards 
+            ? $player->cards->pluck('uuid')->toArray() 
+            : [];
+
+        $cardUuids = $request->has('required_cards') && count($request->required_cards)
+            ?
+            Card::when($request->has('required_cards') && $request->required_cards, function ($query) use ($request) {
                 $query->whereIn('code', $request->required_cards);
             })
+            /*
+            when(!$request->player_cards, function ($query) use ($request) {
+                if ($request->has('required_cards') && count($request->required_cards)) {
+                    $query->whereIn('code', $request->required_cards);
+                }
+            })
             ->when($request->player_cards, function ($query) use ($request,$player) {
-                if (count($request->required_cards)) {
+                if ($request->has('required_cards') && count($request->required_cards)) {
                     $query->whereIn('code', $request->required_cards)
                         ->whereIn('code', $player->cards->pluck('code')->toArray());
+                } else {
+                    $query->whereIn('code', $player->cards->pluck('code')->toArray());
                 }
-                $query->whereIn('code', $player->cards->pluck('code')->toArray());
             })
+            */
             ->pluck('uuid')
-            ->toArray();
+            ->toArray()
+            : [];
 
         /*
         if (!(count($request->required_cards) || count($request->required_keywords))) {
@@ -258,20 +273,25 @@ class MyController extends Controller
             })
             ->groupBy('decks.uuid')
             ->get()
-            ->filter(function ($deck) use ($cardUuids, $keywordParams, $request) {
+            ->filter(function ($deck) use ($request, $cardUuids, $keywordParams, $playerCards) {
                 $deckCards = \DB::table('deck_cards')
                     ->where('deck_uuid', $deck->uuid)
                     ->pluck('card_uuid')
                     ->toArray();
                 
-                if ($request->player_cards && !count($cardUuids)) {
-                    return false;
+                if (count($cardUuids)) {
+                    foreach ($cardUuids as $cardUuid) {
+                        if (!in_array($cardUuid, $deckCards)) {
+                            return false;
+                        } 
+                    }
                 }
 
-                foreach ($cardUuids as $cardUuid) {
-                    if (!in_array($cardUuid, $deckCards)) {
-                        return false;
-                    } 
+                if (count($playerCards)) {
+                    foreach ($deckCards as $deckCard) {
+                        if (!in_array($deckCard, $playerCards))
+                            return false;
+                    }
                 }
 
                 $deckKeywords = \DB::table('deck_keywords')
@@ -279,9 +299,11 @@ class MyController extends Controller
                     ->pluck('keyword')
                     ->toArray();
 
-                foreach ($keywordParams as $param) {
-                    if (!in_array($param,$deckKeywords)) {
-                        return false;
+                if (count($deckKeywords)) {
+                    foreach ($keywordParams as $param) {
+                        if (!in_array($param,$deckKeywords)) {
+                            return false;
+                        }
                     }
                 }
 
