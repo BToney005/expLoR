@@ -37,7 +37,8 @@ class AuthController extends Controller
             $user = User::create([
                 'player_uuid' => $player->uuid,
                 'email' => $request->email,
-                'password' => app('hash')->make($request->password) 
+                'password' => app('hash')->make($request->password),
+                'created_at' =>  date("Y-m-d H:i:s")
             ]);
 
             // $user->password = app('hash')->make($plainPassword);
