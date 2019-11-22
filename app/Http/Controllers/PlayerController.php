@@ -58,7 +58,7 @@ class PlayerController extends Controller
                 $pc = \DB::table('player_cards')
                     ->where([
                         'player_uuid' => $player->uuid,
-                        'card_uuid' => $card->uuid
+                        'card_uuid' => $card->uuid,
                     ])->first();
                 if (!$pc) {
                     \DB::table('player_cards')->insert([
