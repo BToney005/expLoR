@@ -128,31 +128,29 @@ class MyController extends Controller
     public function removeDeckFromFavorites(Request $request) {
 
         $this->validate($request, [
-            'deck_code' => 'required'
+            'deck_code' => 'required',
+            'player_name' => 'required'
         ]);
 
-        $token = $request->header('authorization');
-        if ($token) {
-            $user = User::getByToken($token);
+        $player = Player::where('name', $request->player_name)
+            ->first();
 
-            if ($user && $user->player) {
-                $deck = Deck::where('code', $request->deck_code)->first();
-                if (!$deck) {
-                    return response()->json(['message' => 'Deck not found.'], 204);
-                }
-                $playerDeck = PlayerDeck::where('player_uuid', $user->player->uuid)
-                    ->where('deck_uuid', $deck->uuid)
-                    ->first();
-                if (!$playerDeck) {
-                    return response()->json(['message' => 'Deck not found.'], 204);
-                } else if (!$deck->deleted_at) {
-                    $playerDeck->delete();
-                }
-                return response()->json(['message' => 'DECK UNFAVORITED'], 201);
+        if ($player) {
+            $deck = Deck::where('code', $request->deck_code)->first();
+            if (!$deck) {
+                return response()->json(['message' => 'Deck not found.'], 204);
             }
-            return response()->json(['message' => 'Error retrieving cards.'], 409); 
+            $playerDeck = PlayerDeck::where('player_uuid', $player->uuid)
+                ->where('deck_uuid', $deck->uuid)
+                ->first();
+            if (!$playerDeck) {
+                return response()->json(['message' => 'Deck not found.'], 204);
+            } else if (!$deck->deleted_at) {
+                $playerDeck->delete();
+            }
+            return response()->json(['message' => 'DECK UNFAVORITED'], 201);
         }
-        return response()->json(['message' => 'Authorization error.'], 410);
+        return response()->json(['message' => 'Error retrieving cards.'], 409);
 
     }
 
