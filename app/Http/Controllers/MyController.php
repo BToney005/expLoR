@@ -86,7 +86,8 @@ class MyController extends Controller
         if ($player) {
             $decks = \DB::table('player_decks')
                 ->where('player_uuid', $player->uuid)
-                ->whereNull('deleted_at')
+                ->join('decks', 'decks.uuid', '=', 'player_decks.deck_uuid')
+                ->whereNull('player_decks.deleted_at')
                 ->get();
             return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
         }
