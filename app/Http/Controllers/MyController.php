@@ -76,17 +76,20 @@ class MyController extends Controller
     }
 
     public function getFavoriteDecks(Request $request) {
-        $token = $request->header('authorization');
-        if ($token) {
-            $user = User::getByToken($token);
-            if ($user && $user->player) {
-                $decks = $user->player->decks()
-                    ->whereNull('deleted_at')
-                    ->get(['code','region1','region2']);
-                return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
-            }
+        $this->validate($request, [
+            'player_name' => 'required'
+        ]);
+
+        $player = Player::where('name', $request->player_name)
+            ->first();
+
+        if ($player) {
+            $decks = $player->decks()
+                ->whereNull('deleted_at')
+                ->get(['code','region1','region2']);
+            return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
         }
-        return response()->json(['message' => 'Authorization error.'], 410);
+        return response()->json(['message' => 'Player not found.'], 410);
     }
 
     public function addDeckToFavorites(Request $request) {
