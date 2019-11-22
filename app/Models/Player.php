@@ -17,16 +17,16 @@ class Player extends Model
      * Relationships
      */
 
+    public function cards() {
+        return $this->belongsToMany(Card::class, 'player_cards'); 
+    }
+
     public function decks() {
         return $this->belongsToMany(Deck::class, 'player_decks');
     }
 
     public function matches() {
         return $this->hasMany(Match::class, 'player_uuid');
-    }
-
-    public function cards() {
-        return $this->belongsToMany(Card::class, 'player_cards'); 
     }
 
 }

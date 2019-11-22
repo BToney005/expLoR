@@ -19,6 +19,7 @@ class PlayerController extends Controller
 
         $this->validate($request, [
             'player_id' => 'required',
+            'opponent' => 'required',
             'deck_code' => 'required',
             'result' => 'required|boolean',
             'regions' => 'required',
@@ -47,8 +48,10 @@ class PlayerController extends Controller
                     'keyword' => $keyword
                 ]);
             }
+
             $match = Match::create([
                 'player_uuid' => $player->uuid, 
+                'opponent' => $request->opponent,
                 'deck_code' => $request->deck_code,
                 'result' => (bool) $request->result
             ]);
