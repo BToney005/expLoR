@@ -84,9 +84,10 @@ class MyController extends Controller
             ->first();
 
         if ($player) {
-            $decks = $player->decks()
+            $decks = \DB::table('player_decks')
+                ->where('player_uuid', $player->uuid)
                 ->whereNull('deleted_at')
-                ->get(['code','region1','region2', 'created_at']);
+                ->get();
             return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
         }
         return response()->json(['message' => 'Player not found.'], 410);
