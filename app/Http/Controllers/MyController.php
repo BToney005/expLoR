@@ -161,12 +161,36 @@ class MyController extends Controller
 
     public function filterDecks(Request $request) {
 
+        $regions = [
+            "Neutral",
+            "Noxus",
+            "Demacia",
+            "Freljord",
+            "ShadowIsles",
+            "Ionia",
+            "PiltoverZaun"
+        ];
+
         $this->validate($request, [
             'player_id' => 'required',
             // 'required_keywords' => 'required',
             // 'required_cards' => 'required_if:player_cards,true',
             'player_cards' => 'required|boolean'
         ]);
+
+        $regionParams = [];
+        $keywordParams = [];
+
+        if ($request->has('required_keywords') && count($request->required_keywords)) {
+            foreach ($request->required_keywords as $keyword) {
+                if (in_array($keyword,$regions)) {
+                    $regionParams[] = $keyword;
+                }
+                else {
+                    $keywordParams[] = $keyword;
+                }
+            }
+        }
 
         $player = Player::where('name', $request->player_id)->first();
         if (!$player) {
@@ -198,10 +222,26 @@ class MyController extends Controller
             ->when(count($cardUuids), function ($query) use ($cardUuids) {
                 $query->whereIn('deck_cards.card_uuid', $cardUuids);
             })
-            ->when(count($request->required_keywords), function ($query) use ($request) {
+            ->when(count($request->required_keywords), function ($query) use ($regionParams, $keywordParams) {
+                $query->when(count($regionParams), function ($q) use ($regionParams) {
+                    if (count($regionParams) == 1) {
+                        $q->whereIn('decks.region1', $regionParams)
+                            ->orWhereIn('decks.region2', $regionParams);
+                    } 
+                    else {
+                        $q->whereIn('decks.region1', $regionParams)
+                            ->whereIn('decks.region2', $regionParams);
+                    }
+                })->when(count($keywordParams), function ($q) use ($keywordParams) {
+                    $q->whereIn('deck_keywords.keyword', $keywordParams);
+                });
+                /*
                 $query->whereIn('deck_keywords.keyword', $request->required_keywords)
-                    ->orWhereIn('decks.region1', $request->required_keywords)
-                    ->orWhereIn('decks.region2', $request->required_keywords);
+                    ->orWhere(function ($q) use ($request) {
+                        $q->whereIn('decks.region1', $request->required_keywords)
+                            ->orWhereIn('decks.region2', $request->required_keywords);
+                    });
+                */
             })
             ->groupBy('decks.uuid')
             ->get()
