@@ -41,25 +41,22 @@ class MyController extends Controller
     public function addCard(Request $request) {
 
         $this->validate($request, [
-            'card_code' => 'required'
+            'card_code' => 'required',
+            'count' => 'required',
+            'player_name' => 'required'
         ]);
 
-        $token = $request->header('authorization');
-        if ($token) {
-            $user = User::getByToken($token);
+        $player = Player::where('name', $request->player_name)
+            ->first();
 
-            if ($user && $user->player) {
-                $card = Card::firstOrCreate([
-                    'code' => $request->card_code
-                ]);
-                $playerCard = PlayerCard::firstOrCreate([
-                    'card_uuid' => $card->uuid,
-                    'player_uuid' => $user->player->uuid 
-                ]);
-                return response()->json(['message' => 'card added successfully.'], 201);
-            }
-        }
-        return response()->json(['message' => 'Authorization error.'], 410);
+            $card = Card::firstOrCreate([
+                'code' => $request->card_code
+            ]);
+            $playerCard = PlayerCard::firstOrCreate([
+                'card_uuid' => $card->uuid,
+                'player_uuid' => $player->uuid
+            ]);
+            return response()->json(['message' => 'card added successfully.'], 201);
     }
 
     public function getFavoriteDecks(Request $request) {
