@@ -164,7 +164,7 @@ class MyController extends Controller
         $this->validate($request, [
             'player_id' => 'required',
             // 'required_keywords' => 'required',
-            'required_cards' => 'required_if:player_cards,true',
+            // 'required_cards' => 'required_if:player_cards,true',
             'player_cards' => 'required|boolean'
         ]);
 
