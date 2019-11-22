@@ -102,7 +102,9 @@ class PlayerController extends Controller
                         'result' => $match->result,
                         'timestamp' => $match->created_at
                     ];
-                })->sortByDesc('timestamp');
+                })
+                ->sortByDesc('timestamp')
+                ->toArray();
 
             $byDeck = $player->matches->groupBy('deck_code')
                 ->map(function ($match, $deck_code) use (&$cards) {
