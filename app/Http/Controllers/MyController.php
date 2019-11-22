@@ -159,28 +159,46 @@ class MyController extends Controller
     }
 
     public function filterDecks(Request $request) {
+
         $this->validate($request, [
             'player_id' => 'required',
-            'required_keywords' => 'required',
-            'required_cards' => 'required',
+            // 'required_keywords' => 'required',
+            'required_cards' => 'required_if:player_cards,true',
             'player_cards' => 'required|boolean'
         ]);
 
-        $token = $request->header('authorization');
-        if ($token) {
-            $user = User::getByToken($token);
-
-            if ($user) {
-                $player = Player::where('name', 'player_id')->first();
-                $cards = Card::whereIn('code', $request->required_cards)->pluck('uuid');
-                $decks = \DB::table('decks')
-                    ->select([
-                        'decks.code'
-                    ])
-                    ->leftJoin('deck_cards','decks.uuid','=','deck_cards.deck_uuid')
-                    ->get();
-            }
+        $player = Player::where('name', $request->player_id)->first();
+        if (!$player) {
+            return response()->json(['message' => 'Player not found'], 500);
         }
+        $cardUuids = Card::when(!$request->player_cards, function ($query) use ($request) {
+                $query->whereIn('code', $request->required_cards);
+            })
+            ->when($request->player_cards, function ($query) use ($request,$player) {
+                $query->whereIn('code', $request->required_cards)
+                    ->whereIn('code', $player->cards->pluck('code')->toArray());
+            })
+            ->pluck('uuid')
+            ->toArray();
+        if (!count($cardUuids) && !count($request->required_keywords)) {
+            return response()->json(['message' => 'No valid parameters given'], 500);
+        }
+        $decks = \DB::table('decks')
+            ->leftJoin('deck_cards', 'decks.uuid','=','deck_cards.deck_uuid')
+            ->leftJoin('deck_keywords', 'decks.uuid','=','deck_keywords.deck_uuid')
+            ->select([
+                'decks.*',
+            ])
+            ->when(count($cardUuids), function ($query) use ($cardUuids) {
+                $query->whereIn('deck_cards.card_uuid', $cardUuids);
+            })
+            ->when(count($request->required_keywords), function ($query) use ($request) {
+                $query->whereIn('deck_keywords.keyword', $request->required_keywords);
+            })
+            ->groupBy('decks.uuid')
+            ->get();
+
+        return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
     }
 
 }
