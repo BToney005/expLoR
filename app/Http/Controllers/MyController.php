@@ -214,14 +214,16 @@ class MyController extends Controller
         */
 
         $decks = \DB::table('decks')
-            ->leftJoin('deck_cards', 'decks.uuid','=','deck_cards.deck_uuid')
+            // ->leftJoin('deck_cards', 'decks.uuid','=','deck_cards.deck_uuid')
             ->leftJoin('deck_keywords', 'decks.uuid','=','deck_keywords.deck_uuid')
             ->select([
                 'decks.*',
             ])
+            /*
             ->when(count($cardUuids), function ($query) use ($cardUuids) {
                 $query->whereIn('deck_cards.card_uuid', $cardUuids);
             })
+            */
             ->when(count($request->required_keywords), function ($query) use ($regionParams, $keywordParams) {
                 $query->when(count($regionParams), function ($q) use ($regionParams) {
                     if (count($regionParams) == 1) {
@@ -243,16 +245,21 @@ class MyController extends Controller
                 })->when(count($keywordParams), function ($q) use ($keywordParams) {
                     $q->whereIn('deck_keywords.keyword', $keywordParams);
                 });
-                /*
-                $query->whereIn('deck_keywords.keyword', $request->required_keywords)
-                    ->orWhere(function ($q) use ($request) {
-                        $q->whereIn('decks.region1', $request->required_keywords)
-                            ->orWhereIn('decks.region2', $request->required_keywords);
-                    });
-                */
             })
             ->groupBy('decks.uuid')
             ->get()
+            ->filter(function ($deck) use ($cardUuids) {
+                $deckCards = \DB::table('deck_cards')
+                    ->where('deck_uuid', $deck->uuid)
+                    ->pluck('card_uuid')
+                    ->toArray();
+                foreach ($cardUuids as $cardUuid) {
+                    if (!in_array($cardUuid, $deckCards)) {
+                        return false;
+                    } 
+                }
+                return true;
+            })
             ->map(function ($deck) use ($player) {
                 $deck->bookmarked = $player->decks()->where('deck_uuid', $deck->uuid)
                     ->whereNull('deleted_at')->count();
