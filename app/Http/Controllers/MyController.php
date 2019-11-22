@@ -225,12 +225,20 @@ class MyController extends Controller
             ->when(count($request->required_keywords), function ($query) use ($regionParams, $keywordParams) {
                 $query->when(count($regionParams), function ($q) use ($regionParams) {
                     if (count($regionParams) == 1) {
-                        $q->whereIn('decks.region1', $regionParams)
-                            ->orWhereIn('decks.region2', $regionParams);
+                        $region = $regionParams[0];
+                        $q->where(function ($q1) use ($region) {
+                            $q1->where('decks.region1', $region)
+                                ->whereNull('decks.region2');
+                        })->orWhere(function ($q2) use ($region) {
+                            $q2->whereNull('decks.region1')
+                                ->where('decks.region2',$region);
+                        });
                     } 
-                    else {
+                    else if (count($regionParams) == 2) {
                         $q->whereIn('decks.region1', $regionParams)
                             ->whereIn('decks.region2', $regionParams);
+                    } else {
+                        $q->whereRaw('1=0');
                     }
                 })->when(count($keywordParams), function ($q) use ($keywordParams) {
                     $q->whereIn('deck_keywords.keyword', $keywordParams);
