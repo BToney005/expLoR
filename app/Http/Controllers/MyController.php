@@ -182,6 +182,7 @@ class MyController extends Controller
         if (!count($cardUuids) && !count($request->required_keywords)) {
             return response()->json(['message' => 'No valid parameters given'], 500);
         }
+
         $decks = \DB::table('decks')
             ->leftJoin('deck_cards', 'decks.uuid','=','deck_cards.deck_uuid')
             ->leftJoin('deck_keywords', 'decks.uuid','=','deck_keywords.deck_uuid')
@@ -195,7 +196,11 @@ class MyController extends Controller
                 $query->whereIn('deck_keywords.keyword', $request->required_keywords);
             })
             ->groupBy('decks.uuid')
-            ->get();
+            ->get()
+            ->sortByDesc(function ($deck, $key) {
+                return Deck::find($deck->uuid)
+                    ->score;
+            });
 
         return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
     }

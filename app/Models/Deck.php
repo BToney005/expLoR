@@ -26,6 +26,17 @@ class Deck extends Model
      * Methods 
      */
 
+    public function getScoreAttribute() {
+        $matchCount = Match::where('deck_code', $this->code)->count();
+        if (!$matchCount)
+            return 0;
+        $wins = Match::where('deck_code', $this->code)
+            ->where('result', true)
+            ->count();
+
+        return ($wins*$wins) / $matchCount;
+    }
+
     public function getRegionsAttribute() {
         if ($this->region2) {
             return [
