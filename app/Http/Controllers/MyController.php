@@ -201,7 +201,8 @@ class MyController extends Controller
             ->sortByDesc(function ($deck, $key) {
                 return Deck::find($deck->uuid)
                     ->score;
-            });
+            })
+            ->take(20);
 
         return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
     }
