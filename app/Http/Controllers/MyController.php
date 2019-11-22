@@ -172,6 +172,7 @@ class MyController extends Controller
         if (!$player) {
             return response()->json(['message' => 'Player not found'], 500);
         }
+
         $cardUuids = Card::when(!$request->player_cards, function ($query) use ($request) {
                 $query->whereIn('code', $request->required_cards);
             })
@@ -181,9 +182,12 @@ class MyController extends Controller
             })
             ->pluck('uuid')
             ->toArray();
-        if (!count($cardUuids) && !count($request->required_keywords)) {
+
+        /*
+        if (!(count($request->required_cards) || count($request->required_keywords))) {
             return response()->json(['message' => 'No valid parameters given'], 500);
         }
+        */
 
         $decks = \DB::table('decks')
             ->leftJoin('deck_cards', 'decks.uuid','=','deck_cards.deck_uuid')
@@ -195,7 +199,9 @@ class MyController extends Controller
                 $query->whereIn('deck_cards.card_uuid', $cardUuids);
             })
             ->when(count($request->required_keywords), function ($query) use ($request) {
-                $query->whereIn('deck_keywords.keyword', $request->required_keywords);
+                $query->whereIn('deck_keywords.keyword', $request->required_keywords)
+                    ->orWhereIn('decks.region1', $request->required_keywords)
+                    ->orWhereIn('decks.region2', $request->required_keywords);
             })
             ->groupBy('decks.uuid')
             ->get()
