@@ -19,6 +19,7 @@ class PlayerController extends Controller
 
         $this->validate($request, [
             'player_id' => 'required',
+            'opponent' => 'required',
             'deck_code' => 'required',
             'result' => 'required|boolean',
             'regions' => 'required',
@@ -47,8 +48,10 @@ class PlayerController extends Controller
                     'keyword' => $keyword
                 ]);
             }
+
             $match = Match::create([
                 'player_uuid' => $player->uuid, 
+                'opponent' => $request->opponent,
                 'deck_code' => $request->deck_code,
                 'result' => (bool) $request->result,
                 'created_at' => date("Y-m-d H:i:s")
@@ -96,14 +99,16 @@ class PlayerController extends Controller
             ->first();
 
         if ($player) {
-            $matchHistory = $player->matches
+            $matchHistory = $player->matches()
+                ->orderBy('created_at', 'desc')
+                ->get()
                 ->map(function($match) {
                     return [
                         'deck' => $match->deck_code,
                         'result' => $match->result,
                         'timestamp' => $match->created_at
                     ];
-                })->sortByDesc('timestamp');
+                });
 
             $byDeck = $player->matches->groupBy('deck_code')
                 ->map(function ($match, $deck_code) use (&$cards) {
