@@ -31,5 +31,21 @@ class DeckSeeder extends Seeder
                     ]
                 );
         }
+
+        $ranks = [
+            ['S', '100'],
+            ['A','75'],
+            ['B', '25'],
+            ['C', '5']
+        ];
+        foreach ($ranks as $rank) {
+            \DB::table('ranks')
+                ->insert(
+                    [
+                        'rank' => $rank[0],
+                        'lower_bound' => $rank[1]
+                    ]
+                    );
+        }
     }
 }
