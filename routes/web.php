@@ -36,4 +36,8 @@ $router->group(['prefix' => 'api'], function () use ($router) {
     $router->group(['prefix' => 'decks'], function () use ($router) {
         $router->get('top-decks', 'DeckController@topDecks');
     });
+
+    $router->group(['prefix' => 'ranks'], function () use ($router) {
+        $router->post('set-ranks', 'RankController@setRanks');
+    });
 });
