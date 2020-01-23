@@ -14,6 +14,7 @@ class AddRanksTable extends Migration
     public function up()
     {
         Schema::create('ranks', function (Blueprint $table) {
+            $table->integer('rank_id');
             $table->string('rank');
             $table->float('lower_bound');
         });

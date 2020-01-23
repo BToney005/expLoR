@@ -25,13 +25,33 @@ class RankController extends Controller
             }, $quintile_groups);
 
         $quintiles = array(
-            array('rank'=>'S', 'lower_bound'=> $quintile_boundaries[4]),
-            array('rank'=>'A', 'lower_bound'=> $quintile_boundaries[3]),
-            array('rank'=>'B', 'lower_bound'=> $quintile_boundaries[2]),
-            array('rank'=>'C', 'lower_bound'=> $quintile_boundaries[1]),
+            array('rank_id'=> 1, 'rank'=>'S', 'lower_bound'=> $quintile_boundaries[4]),
+            array('rank_id'=> 2, 'rank'=>'A', 'lower_bound'=> $quintile_boundaries[3]),
+            array('rank_id'=> 3, 'rank'=>'B', 'lower_bound'=> $quintile_boundaries[2]),
+            array('rank_id'=> 4, 'rank'=>'C', 'lower_bound'=> $quintile_boundaries[1]),
+            array('rank_id'=> 5, 'rank'=>'D', 'lower_bound'=> 0)
         );
-        // DB::table('ranks')->delete();
+        \DB::table('ranks')->delete();
         \DB::table('ranks')->insert($quintiles);
         return response()->json(['message' => 'QUINTILES SET'], 200);
+    }
+
+    public function getDeckRank(Request $request) {
+        $this->validate($request, [
+            'score' => 'required'
+        ]);
+
+        $quintile_boundaries = \DB::table('ranks')
+            ->orderBy('rank_id')->get()->toArray();
+
+        $rank_id = 1;
+        $score = floatval($request->score);
+
+        while ($quintile_boundaries[$rank_id-1]->lower_bound > $score) {
+            $rank_id = ++$rank_id;
+        }
+
+        $rank = $quintile_boundaries[$rank_id-1]->rank;
+        return response()->json(['rank' => $rank], 200);
     }
 }
