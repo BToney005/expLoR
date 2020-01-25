@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Match;
+use App\Models\Rank;
 use App\Models\Player;
 use Carbon\Carbon;
 
@@ -24,6 +25,11 @@ class DeckController extends Controller
             ->orderBy('score', 'desc')
             ->take($request->n)
             ->get();
+
+        $ranks = RANK::select()->orderBy('lower_bound', 'desc')->get()->toArray();
+        foreach($top_decks as $deck) {
+            $deck->rank = assignRank($deck->score, $ranks);
+        }
 
         return response()->json(['top_decks' => $top_decks, 'message' => 'DECKS FOUND'], 200);
     }

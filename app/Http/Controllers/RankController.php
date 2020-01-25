@@ -35,23 +35,4 @@ class RankController extends Controller
         \DB::table('ranks')->insert($quintiles);
         return response()->json(['message' => 'QUINTILES SET'], 200);
     }
-
-    public function getDeckRank(Request $request) {
-        $this->validate($request, [
-            'score' => 'required'
-        ]);
-
-        $quintile_boundaries = \DB::table('ranks')
-            ->orderBy('rank_id')->get()->toArray();
-
-        $rank_id = 1;
-        $score = floatval($request->score);
-
-        while ($quintile_boundaries[$rank_id-1]->lower_bound > $score) {
-            $rank_id = ++$rank_id;
-        }
-
-        $rank = $quintile_boundaries[$rank_id-1]->rank;
-        return response()->json(['rank' => $rank], 200);
-    }
 }
