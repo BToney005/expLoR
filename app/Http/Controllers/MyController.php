@@ -8,11 +8,13 @@ use App\Models\Deck;
 use App\Models\Player\Deck as PlayerDeck;
 use App\Models\Match;
 use App\Models\Player;
+use App\Models\Rank;
 use App\Models\Player\Card as PlayerCard;
 use App\Models\User;
 use Carbon\Carbon;
 
 use \Firebase\JWT\JWT;
+use Illuminate\Support\Facades\DB;
 
 class MyController extends Controller
 {
@@ -89,6 +91,11 @@ class MyController extends Controller
                 ->join('decks', 'decks.uuid', '=', 'player_decks.deck_uuid')
                 ->whereNull('player_decks.deleted_at')
                 ->get();
+
+            // $ranks = RANK::select()->orderBy('lower_bound', 'desc')->get()->toArray();
+            // foreach($decks as $deck) {
+            //     $deck->rank = assignRank($deck->score, $ranks);
+            // }
             return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
         }
         return response()->json(['message' => 'Player not found.'], 410);
@@ -320,6 +327,22 @@ class MyController extends Controller
             })
             ->take(20)
             ->values();
+
+        // assign rank to deck code
+        $ranks = RANK::select()->orderBy('lower_bound', 'desc')->get()->toArray();
+        foreach($decks as $deck) {
+            $deck_matches = MATCH::select(DB::raw('deck_code, sum(result) * sum(result) / count(result) as score'))
+            ->where('deck_code', '=', $deck->code)
+            ->whereBetween('created_at', [Carbon::now()->subMonths(1), Carbon::now()])
+            ->groupBy('deck_code')
+            ->orderBy('score', 'desc')
+            ->get()
+            ->toArray();
+            if (count($deck_matches)) {
+                $score = $deck_matches[0]["score"];
+                $deck->rank = assignRank($score, $ranks);
+            }
+        }
         return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
     }
 
