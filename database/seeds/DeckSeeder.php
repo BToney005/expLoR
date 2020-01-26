@@ -33,17 +33,18 @@ class DeckSeeder extends Seeder
         }
 
         $ranks = [
-            ['S', '100'],
-            ['A','75'],
-            ['B', '25'],
-            ['C', '5']
+            [1, 'S', '100'],
+            [2, 'A','75'],
+            [3, '25'],
+            [4, 'C', '5']
         ];
         foreach ($ranks as $rank) {
             \DB::table('ranks')
                 ->insert(
                     [
-                        'rank' => $rank[0],
-                        'lower_bound' => $rank[1]
+                        'rank_id' => $rank[0],
+                        'rank' => $rank[1],
+                        'lower_bound' => $rank[2]
                     ]
                     );
         }
