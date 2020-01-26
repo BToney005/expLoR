@@ -35,7 +35,7 @@ class DeckSeeder extends Seeder
         $ranks = [
             [1, 'S', '100'],
             [2, 'A','75'],
-            [3, '25'],
+            [3, 'B', '25'],
             [4, 'C', '5']
         ];
         foreach ($ranks as $rank) {
