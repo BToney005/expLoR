@@ -92,10 +92,18 @@ class MyController extends Controller
                 ->whereNull('player_decks.deleted_at')
                 ->get();
 
-            // $ranks = RANK::select()->orderBy('lower_bound', 'desc')->get()->toArray();
-            // foreach($decks as $deck) {
-            //     $deck->rank = assignRank($deck->score, $ranks);
-            // }
+            $ranks = RANK::select()->orderBy('lower_bound', 'desc')->get()->toArray();
+            foreach($decks as $deck) {
+                $matches = MATCH::select(DB::raw('deck_code, sum(result) * sum(result) / count(result) as score'))
+                    ->where('deck_code', '=', $deck->deck_code)
+                    ->whereBetween('created_at', [Carbon::now()->subMonths(1), Carbon::now()])
+                    ->groupBy('deck_code')
+                    ->get()
+                    ->toArray();
+                $score = $matches[0]->score;
+                $deck->rank = assignRank($score, $ranks);
+            }
+
             return response()->json(['decks' => $decks, 'message' => 'DECKS FOUND'], 201);
         }
         return response()->json(['message' => 'Player not found.'], 410);
