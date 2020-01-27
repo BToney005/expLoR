@@ -95,12 +95,12 @@ class MyController extends Controller
             $ranks = RANK::select()->orderBy('lower_bound', 'desc')->get()->toArray();
             foreach($decks as $deck) {
                 $matches = MATCH::select(DB::raw('deck_code, sum(result) * sum(result) / count(result) as score'))
-                    ->where('deck_code', '=', $deck->deck_code)
+                    ->where('deck_code', '=', $deck->code)
                     ->whereBetween('created_at', [Carbon::now()->subMonths(1), Carbon::now()])
                     ->groupBy('deck_code')
                     ->get()
                     ->toArray();
-                $score = $matches[0]->score;
+                $score = $matches[0]["score"];
                 $deck->rank = assignRank($score, $ranks);
             }
 
